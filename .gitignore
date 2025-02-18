@@ -8,6 +8,9 @@
 venv/
 env/
 
+# uv
+uv.lock
+
 # Python cache and compiled files
 __pycache__/
 *.py[cod]
