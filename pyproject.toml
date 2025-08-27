@@ -5,7 +5,7 @@ description = "Your project description"
 authors = [
     {name = "Your Name", email = "your.email@forumvirium.fi"},
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
@@ -16,7 +16,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
@@ -32,6 +31,7 @@ dev = [
     "ruff>=0.9.0",
     "pre-commit>=3.6.0",
     "pip-tools>=7.3.0",
+    "mypy>=1.8.0",
 ]
 test = [
     "pytest>=8.0.0",
@@ -45,7 +45,7 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py312"
 
 # Rules: https://docs.astral.sh/ruff/rules/
 select = [
@@ -61,11 +61,19 @@ select = [
     "TCH",  # flake8-type-checking
     "RUF",  # Ruff-specific rules
     "D",    # pydocstyle
+    "S",    # flake8-bandit (security)
+    "PTH",  # flake8-use-pathlib
+    "ERA",  # eradicate (commented code)
+    "PL",   # pylint
+    "PERF", # perflint
 ]
 
 ignore = [
-    "D100",  # Missing docstring in public module
-    "D104",  # Missing docstring in public package
+    "D100",   # Missing docstring in public module
+    "D104",   # Missing docstring in public package
+    "PLR0913", # Too many arguments
+    "PLR2004", # Magic value used in comparison
+    "S101",   # Use of assert
 ]
 
 [tool.ruff.format]
@@ -80,3 +88,33 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 
 [tool.ruff.pydocstyle]
 convention = "google"
+
+# Mypy configuration
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Per-module options for external libraries
+[[tool.mypy.overrides]]
+module = [
+    "fastapi.*",
+    "sqlalchemy.*",
+    "pydantic.*",
+]
+ignore_missing_imports = true
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.1.0",
+]
