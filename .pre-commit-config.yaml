@@ -1,16 +1,25 @@
 repos:
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.9.6'
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 'v0.12.10'
     hooks:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.17.1'
+    hooks:
+      - id: mypy
+        additional_dependencies: [
+          # Add specific type stubs as needed for your project
+          # Example: types-requests, types-PyYAML, etc.
+        ]
