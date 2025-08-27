@@ -154,18 +154,75 @@ working on complex features. While not always mandatory for minor changes, it he
 
 When in doubt, always ask for a review. Your colleagues are there to help!
 
-## main, dev, feature, bugfix branches
+## Branching strategy
 
-We follow a branching strategy where `main` branch contains production-ready code, `dev` branch is used for development, and feature/bugfix branches are created for specific changes. Feature branches should be named as `feature/description-of-change` and bugfix branches as `bugfix/issue-description`.
+We use a simplified branching strategy focused on the `main` branch:
 
-For detailed branching strategy guidelines and best practices, see [Git Flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) documentation.
+- **Main branch** is used for active development
+- **Feature/bugfix branches** are created from `main` for specific changes
+- Branch naming: `feature/description-of-change` and `bugfix/issue-description`
+- Aim for **short-lived branches** and merge often to avoid conflicts
+- When working alone on initial development, you can commit directly to `main`
 
-Always create new branches from `dev` and merge back through pull requests.
+### Merge strategy
 
-TO BE DISCUSSED: should we use `main` branch for production code?
+- Use **rebase** or **squash** when merging pull requests
+- Avoid merge commits to keep commit history linear and clean
+- This makes it easier to track changes and debug issues later
 
 ## Code review using pull requests
 
-Pull requests (PRs) are typically mandatory in larger projects unless explicitly agreed otherwise. They serve as a formal mechanism for code review, ensuring that all changes are properly vetted before being merged into the main codebase. This practice helps maintain code quality, catch potential issues early, and keeps the team informed about ongoing changes. Even for smaller changes, creating a PR is recommended as it provides documentation of the change and allows for discussion if needed.
+Pull requests (PRs) are recommended for code review, but the approach can be flexible based on project size and team:
 
-TO BE DISCUSSED: perhaps in personal projects we can use a simpler approach?
+**For larger projects or team collaborations:**
+- PRs are mandatory for all changes
+- Formal code review process ensures quality and knowledge sharing
+- All changes must be approved before merging
+
+**For smaller projects or personal work:**
+- You can commit directly to `main` during initial development phases
+- Use PRs when you want feedback or for significant changes
+- Consider creating PRs even for solo work to document important changes
+
+**Benefits of using PRs:**
+- Maintains code quality through peer review
+- Catches potential issues early in development
+- Provides documentation of changes and reasoning
+- Keeps the team informed about ongoing work
+
+## Release management and automation
+
+### Releases from main branch
+
+Releases are published directly from stable points in the `main` branch:
+
+- No separate release branches needed
+- It's acceptable for `main` to be temporarily broken during development
+- Release when you reach a stable, tested state
+- Tag releases with semantic versioning (e.g., `v1.2.3`)
+
+### Automated release process
+
+The release process can be fully automated using CI/CD tools. This automation works best with:
+
+**Conventional Commits:**
+- Use standardized commit message format
+- Examples:
+  - `feat: add user authentication system`
+  - `fix: resolve database connection timeout`
+  - `docs: update installation instructions`
+  - `chore: update dependencies`
+
+**Automated benefits:**
+- Automatic version number bumping based on commit types
+- Generated release notes from commit messages
+- Automated changelog updates
+- Consistent release process across projects
+
+**Commit types:**
+- `feat`: New features (minor version bump)
+- `fix`: Bug fixes (patch version bump)
+- `BREAKING CHANGE`: Breaking changes (major version bump)
+- `docs`, `style`, `refactor`, `test`, `chore`: No version bump
+
+This approach reduces manual work and ensures consistent, documented releases.
