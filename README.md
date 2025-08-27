@@ -10,7 +10,7 @@ If you don't agree with some point, then suggest a change, and we'll discuss it.
 We support "security" and "bugfix" versions which are mentioned in the
 [Status of Python versions](https://devguide.python.org/versions/#supported-versions)
 page, but consider using two latest versions which are currently Python 3.12 and 3.13
-(while writing this in February 2025). If your deployment environment doesn't
+(while writing this in August 2025). If your deployment environment doesn't
 support these, consider installing the latest Python or using Docker containers,
 where you should always use the latest version of Python.
 
@@ -80,7 +80,7 @@ See the configuration for detailed rules and settings.
 ### Pre-commit
 
 Pre-commit hooks are mandatory for all repositories under Forum Virium Helsinki. These hooks:
-- Automatically run Ruff and other checks before each commit
+- Automatically run Ruff, mypy, and other checks before each commit
 - Ensure code quality standards are met
 - Prevent commits that don't meet the required standards
 - Save time by catching issues early in the development process
@@ -95,8 +95,25 @@ uv pip install pre-commit && pre-commit install
 
 If you have already run `uv sync --active --extra dev`, you can skip the installation step. You can update the pre-commit hooks by running: `pre-commit autoupdate`.
 
-The pre-commit configuration includes Ruff and other essential checks. You can find the
-complete configuration in the example [.pre-commit-config.yaml](./.pre-commit-config.yaml).
+The pre-commit configuration includes Ruff, mypy type checking, and other essential checks.
+You can find the complete configuration in the example [.pre-commit-config.yaml](./.pre-commit-config.yaml).
+
+### Type Checking with mypy
+
+[mypy](https://mypy.readthedocs.io/) is a static type checker for Python that helps catch type-related errors before runtime. Type checking is mandatory for all new projects.
+
+Key benefits:
+- Catches type errors at development time
+- Improves code documentation through type annotations
+- Makes refactoring safer and easier
+- Enhances IDE support with better autocomplete
+
+Run type checking manually:
+
+`mypy src/`
+
+Configuration is set up in [pyproject.toml](./pyproject.toml) with strict settings enabled.
+mypy is also automatically run as part of pre-commit hooks.
 
 # Other recommended tools
 
@@ -113,7 +130,7 @@ deployments. Sentry provides real-time error tracking and monitoring:
 To set up Sentry in your project:
 
 1. Ask sysadmins for your project's Sentry DSN
-2. Install the SDK: `uv pip install --sentry-sdk`
+2. Install the SDK: `uv add sentry-sdk`
 3. Initialize Sentry in your application:
 
 ```python
