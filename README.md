@@ -1,155 +1,228 @@
 # Python coding conventions (Forum Virium Helsinki)
 
 This document defines FVH's programming conventions when using Python programming
-language. Note that this is work-in-progress project. 
-If you don't agree with some point, then suggest a change, and we'll discuss it.
+language. Note that this is work-in-progress project.
 
-Some coding conventions below are derived from here:
-https://dev.hel.fi/coding-standards
+If you don't agree with some point, then suggest a change, and we'll discuss it.
 
 # Python versions
 
-We support versions which are mentioned in the [Status of Python 
-versions](https://devguide.python.org/versions/#supported-versions) page,
-but consider using two latest versions which are currently Python 3.10 and 3.11
-(while writing this in October 2022). If your deployment environment doesn't
-support these, consider installing the latest Python (using pyenv) or using 
-Docker containers, where you should always use the latest version of Python.
+We support "security" and "bugfix" versions which are mentioned in the
+[Status of Python versions](https://devguide.python.org/versions/#supported-versions)
+page, but consider using two latest versions which are currently Python 3.12 and 3.13
+(while writing this in August 2025). If your deployment environment doesn't
+support these, consider installing the latest Python or using Docker containers,
+where you should always use the latest version of Python.
 
 ## Virtual environments
 
-Use `/path/to/latest/python -m venv /path/to/venv` for creating 
-virtualenvs or (`pyenv virtualenv` if you prefer pyenv), not virtualenv or other 
-alternatives when using virtual environments in scripts.
+Use `uv venv` to create virtual environments. UV is a fast Python package installer
+and resolver written in Rust. It offers several advantages over traditional tools:
+
+- Up to 10-100x faster than pip for installations
+- Built-in dependency resolution that's more reliable than pip
+- Native support for modern package formats and lockfiles
+- Lower memory usage and better system resource utilization
+- Automatic virtual environment management
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or on macOS
+brew install uv
+
+# Create new virtual environment
+uv venv venv  # optional: --python 3.13
+
+# Activate virtual environment
+source venv/bin/activate
+```
+
+UV replaces both venv and pip functionality with improved performance. Do not use
+virtualenv, pyenv, or other alternatives when creating virtual environments in scripts.
+
+## Install dependencies
+
+Install default dependencies and development dependencies in active virtual environment in one go:
+
+```bash
+uv sync --active --extra dev
+```
 
 # Mandatory tools to use
 
 If you are the one and only person who is writing and viewing the code in your
 project, it is highly recommended to use tools listed below. You can safely try
-all commands to see what they would do
+all commands to see what they would do.
 
-## black
+Many IDEs (PyCharm, VSCode, Cursor, etc.) have plugins for Ruff, so you can use it without additional setup.
 
-Newer projects use [black](https://black.readthedocs.io/) for Python code
-formatting.  It is a PEP 8 compliant opinionated formatter.
-We follow the basic config, without any modifications but line
-length which may be up to 120 characters. Black should be required for new
-projects and is warmly welcome for the old ones.
+## Required Development Tools
 
-Check what would be changed:
+### Ruff
 
-`black --diff --line-length 120 file.py`
+[Ruff](https://docs.astral.sh/ruff/) is an extremely fast Python linter and code formatter,
+written in Rust. It replaces multiple tools (like black, isort, flake8, etc.) with a single,
+unified solution.
 
-Fix file(s):
+Check and fix code style:
 
-`black --line-length 120 file.py`
+`ruff check --fix .`
 
-Set up configuration in pyproject.toml file.
+Format code:
 
-## isort
+`ruff format .`
 
-[isort](https://pycqa.github.io/isort/) sorts imports alphabetically, 
-and automatically separates them into sections and by type.
-To make it compatible with black add the following line either 
-to your project's pyproject.toml file's tool.isort section.
+Configuration is already set up in the project's [pyproject.toml](./pyproject.toml) file.
+See the configuration for detailed rules and settings.
 
+### Pre-commit
+
+Pre-commit hooks are mandatory for all repositories under Forum Virium Helsinki. These hooks:
+- Automatically run Ruff, mypy, and other checks before each commit
+- Ensure code quality standards are met
+- Prevent commits that don't meet the required standards
+- Save time by catching issues early in the development process
+
+To set up pre-commit:
+
+1. Copy [.pre-commit-config.yaml](./.pre-commit-config.yaml) to your repository root
+2. Install and activate pre-commit:
+```bash
+uv pip install pre-commit && pre-commit install
 ```
-[tool.isort]
-line_length = 120
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-skip = ["migrations", "venv"]
-```
 
-Check what would be changed:  
+If you have already run `uv sync --active --extra dev`, you can skip the installation step. You can update the pre-commit hooks by running: `pre-commit autoupdate`.
 
-`isort --diff file.py`
+The pre-commit configuration includes Ruff, mypy type checking, and other essential checks.
+You can find the complete configuration in the example [.pre-commit-config.yaml](./.pre-commit-config.yaml).
 
-Fix file(s):  
+### Type Checking with mypy
 
-`isort file.py`
+[mypy](https://mypy.readthedocs.io/) is a static type checker for Python that helps catch type-related errors before runtime. Type checking is mandatory for all new projects.
 
-## autoflake
+Key benefits:
+- Catches type errors at development time
+- Improves code documentation through type annotations
+- Makes refactoring safer and easier
+- Enhances IDE support with better autocomplete
 
-[autoflake](https://github.com/PyCQA/autoflake#introduction) removes unused 
-imports and unused variables from Python code.
+Run type checking manually:
 
-Check what would be changed:
+`mypy src/`
 
-`autoflake --remove-all-unused-imports --remove-unused-variables file.py`
-
-Fix file(s):
-
-`autoflake --in-place --remove-all-unused-imports --remove-unused-variables file.py`
-
-## flake8
-
-Flake8 is a Python library that wraps PyFlakes, pycodestyle and Ned Batchelder's McCabe 
-script to check the style and quality of some python code.
-
-Check style and formatting errors:
-
-`flake8 --max-line-length 120 file.py`
-
-Set up configuration in [.flake8](./.flake8) file.
-
-## Configuration files
-
-Unfortunately all tools don't support pyproject.toml yet. It should be used when 
-possible, but e.g. flake8 needs its .flake8 file.
-
-### requirements-dev.txt
-
-Install modules defined in [requirements-dev.txt](./requirements-dev.txt) into 
-your development environment's virtualenv using command:
-
-`pip install -U -r requirements-dev.txt`
-
-### .flake8
-
-Currently, flake8 is not compatible with pyproject.toml so put its config in 
-a dedicated [.flake8](./.flake8) file.
-It may contain just `max-line-length = 120` or smaller value for that.
-
-### pyproject.toml
-
-[pyproject.toml](./pyproject.toml) contains configuration for 
-black, isort and autoflake.
-
-### pre-commit + githooks
-
-If you are pushing code to a repository under 
-[Forum Virium's Github organization](https://github.com/ForumViriumHelsinki/)
-you must use [pre-commit](https://pre-commit.com/) and Git hooks.
-
-You can find example [.pre-commit-config.yaml](./.pre-commit-config.yaml)
-configuration file in this repository.
-
-#### TL;DR
-
-Copy [.pre-commit-config.yaml](./.pre-commit-config.yaml) 
-to the root of your repository, then:
-
-`pip install pre-commit && pre-commit install`
+Configuration is set up in [pyproject.toml](./pyproject.toml) with strict settings enabled.
+mypy is also automatically run as part of pre-commit hooks.
 
 # Other recommended tools
 
 ## Sentry
 
-We use [sentry.io](https://sentry.io) to track errors in our production 
-deployments. Ask sysadmins for Sentry DSN.
+We use [sentry.io](https://sentry.io) to track errors in our production
+deployments. Sentry provides real-time error tracking and monitoring:
 
-# TODO
+- Automatic error capturing and reporting
+- Detailed stack traces and context
+- Performance monitoring
+- Release tracking and source maps
+
+To set up Sentry in your project:
+
+1. Ask sysadmins for your project's Sentry DSN
+2. Install the SDK: `uv add sentry-sdk`
+3. Initialize Sentry in your application:
+
+```python
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="your-dsn-here",
+    traces_sample_rate=1.0,
+    environment="production"
+)
+```
 
 ## Code review by asking someone
 
-## main, dev, feature, bugfix branches
+Code review by a colleague is recommended, especially when you're new to the project or
+working on complex features. While not always mandatory for minor changes, it helps to:
 
-## code review using pull requests
+- Catch potential issues early
+- Ensure code follows project standards
+- Share knowledge within the team
 
+When in doubt, always ask for a review. Your colleagues are there to help!
 
+## Branching strategy
 
+We use a simplified branching strategy focused on the `main` branch:
 
+- **Main branch** is used for active development
+- **Feature/bugfix branches** are created from `main` for specific changes
+- Branch naming: `feature/description-of-change` and `bugfix/issue-description`
+- Aim for **short-lived branches** and merge often to avoid conflicts
+- When working alone on initial development, you can commit directly to `main`
+
+### Merge strategy
+
+- Use **rebase** or **squash** when merging pull requests
+- Avoid merge commits to keep commit history linear and clean
+- This makes it easier to track changes and debug issues later
+
+## Code review using pull requests
+
+Pull requests (PRs) are recommended for code review, but the approach can be flexible based on project size and team:
+
+**For larger projects or team collaborations:**
+- PRs are mandatory for all changes
+- Formal code review process ensures quality and knowledge sharing
+- All changes must be approved before merging
+
+**For smaller projects or personal work:**
+- You can commit directly to `main` during initial development phases
+- Use PRs when you want feedback or for significant changes
+- Consider creating PRs even for solo work to document important changes
+
+**Benefits of using PRs:**
+- Maintains code quality through peer review
+- Catches potential issues early in development
+- Provides documentation of changes and reasoning
+- Keeps the team informed about ongoing work
+
+## Release management and automation
+
+### Releases from main branch
+
+Releases are published directly from stable points in the `main` branch:
+
+- No separate release branches needed
+- It's acceptable for `main` to be temporarily broken during development
+- Release when you reach a stable, tested state
+- Tag releases with semantic versioning (e.g., `v1.2.3`)
+
+### Automated release process
+
+The release process can be fully automated using CI/CD tools. This automation works best with:
+
+**Conventional Commits:**
+- Use standardized commit message format
+- Examples:
+  - `feat: add user authentication system`
+  - `fix: resolve database connection timeout`
+  - `docs: update installation instructions`
+  - `chore: update dependencies`
+
+**Automated benefits:**
+- Automatic version number bumping based on commit types
+- Generated release notes from commit messages
+- Automated changelog updates
+- Consistent release process across projects
+
+**Commit types:**
+- `feat`: New features (minor version bump)
+- `fix`: Bug fixes (patch version bump)
+- `BREAKING CHANGE`: Breaking changes (major version bump)
+- `docs`, `style`, `refactor`, `test`, `chore`: No version bump
+
+This approach reduces manual work and ensures consistent, documented releases.

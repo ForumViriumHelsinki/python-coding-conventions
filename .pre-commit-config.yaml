@@ -1,27 +1,25 @@
 repos:
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.261'
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 'v0.12.10'
     hooks:
       - id: ruff
-        # Respect `exclude` and `extend-exclude` settings.
-        args: ["--line-length", "120"]
+        args: ["--fix"]
+      - id: ruff-format
 
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.17.1'
     hooks:
-      - id: black
-
-  - repo: https://github.com/myint/autoflake
-    rev: v2.0.2
-    hooks:
-      - id: autoflake
-        exclude: migrations
+      - id: mypy
+        additional_dependencies: [
+          # Add specific type stubs as needed for your project
+          # Example: types-requests, types-PyYAML, etc.
+        ]
