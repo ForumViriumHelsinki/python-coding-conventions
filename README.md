@@ -9,10 +9,13 @@ If you don't agree with some point, then suggest a change, and we'll discuss it.
 
 We support "security" and "bugfix" versions which are mentioned in the
 [Status of Python versions](https://devguide.python.org/versions/#supported-versions)
-page, but consider using two latest versions which are currently Python 3.12 and 3.13
-(while writing this in August 2025). If your deployment environment doesn't
+page, but consider using two latest versions which are currently Python 3.13 and 3.14
+(updated March 2026). If your deployment environment doesn't
 support these, consider installing the latest Python or using Docker containers,
 where you should always use the latest version of Python.
+
+Of course, if your machine learning project requires Python 3.11 or something else,
+you can use it.
 
 ## Virtual environments
 
@@ -33,10 +36,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 brew install uv
 
 # Create new virtual environment
-uv venv venv  # optional: --python 3.13
+uv venv  # optional: --python 3.13
 
 # Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 UV replaces both venv and pip functionality with improved performance. Do not use
@@ -47,7 +50,30 @@ virtualenv, pyenv, or other alternatives when creating virtual environments in s
 Install default dependencies and development dependencies in active virtual environment in one go:
 
 ```bash
-uv sync --active --extra dev
+uv sync --group dev
+```
+
+## Running commands
+
+Use `uv run` to run commands inside the virtual environment without manually activating it:
+
+```bash
+uv run pytest
+uv run ruff check .
+uv run mypy src/
+```
+
+## Lockfile
+
+Use `uv lock` to generate and update the lockfile (`uv.lock`). The lockfile ensures
+reproducible installations across environments. Commit `uv.lock` to version control.
+
+```bash
+# Generate or update lockfile
+uv lock
+
+# Update a specific dependency
+uv lock --upgrade-package fastapi
 ```
 
 # Mandatory tools to use
@@ -93,7 +119,7 @@ To set up pre-commit:
 uv pip install pre-commit && pre-commit install
 ```
 
-If you have already run `uv sync --active --extra dev`, you can skip the installation step. You can update the pre-commit hooks by running: `pre-commit autoupdate`.
+If you have already run `uv sync --group dev`, you can skip the installation step. You can update the pre-commit hooks by running: `pre-commit autoupdate`.
 
 The pre-commit configuration includes Ruff, mypy type checking, and other essential checks.
 You can find the complete configuration in the example [.pre-commit-config.yaml](./.pre-commit-config.yaml).
@@ -114,6 +140,19 @@ Run type checking manually:
 
 Configuration is set up in [pyproject.toml](./pyproject.toml) with strict settings enabled.
 mypy is also automatically run as part of pre-commit hooks.
+
+#### Alternative type checkers
+
+We are actively evaluating alternative type checkers. If you find one of these better
+suited for your project, you are free to use it instead of mypy:
+
+- [pyright](https://github.com/microsoft/pyright) — Microsoft's type checker, fast and widely
+  used, excellent VSCode integration via Pylance.
+- [basedpyright](https://github.com/DetachHead/basedpyright) — a fork of pyright with
+  additional strictness options and quality-of-life improvements.
+
+Both are valid choices and can be configured in `pyproject.toml`. If you switch, update the
+pre-commit hooks accordingly and document the choice in the project README.
 
 # Other recommended tools
 
@@ -138,10 +177,13 @@ import sentry_sdk
 
 sentry_sdk.init(
     dsn="your-dsn-here",
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.1,  # Adjust based on traffic — 1.0 captures everything
     environment="production"
 )
 ```
+
+**Note:** A `traces_sample_rate` of `1.0` captures every transaction and can be expensive
+in high-traffic applications. Start with `0.1` (10%) and adjust based on your needs.
 
 ## Code review by asking someone
 
