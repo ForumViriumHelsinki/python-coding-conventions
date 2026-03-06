@@ -5,7 +5,7 @@ description = "Your project description"
 authors = [
     {name = "Your Name", email = "your.email@forumvirium.fi"},
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
@@ -16,8 +16,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 dependencies = [
@@ -26,11 +26,14 @@ dependencies = [
     "sqlalchemy>=2.0.25",
 ]
 
-[project.optional-dependencies]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
 dev = [
     "ruff>=0.9.0",
-    "pre-commit>=3.6.0",
-    "pip-tools>=7.3.0",
+    "pre-commit>=4.1.0",
     "mypy>=1.8.0",
 ]
 test = [
@@ -39,14 +42,11 @@ test = [
     "pytest-asyncio>=0.23.0",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.ruff]
 line-length = 120
-target-version = "py312"
+target-version = "py313"
 
+[tool.ruff.lint]
 # Rules: https://docs.astral.sh/ruff/rules/
 select = [
     "E",    # pycodestyle errors
@@ -58,7 +58,7 @@ select = [
     "UP",   # pyupgrade
     "N",    # pep8-naming
     "SIM",  # flake8-simplify
-    "TCH",  # flake8-type-checking
+    "TC",   # flake8-type-checking (formerly TCH)
     "RUF",  # Ruff-specific rules
     "D",    # pydocstyle
     "S",    # flake8-bandit (security)
@@ -82,16 +82,17 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["your_package_name"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
 # Mypy configuration
+# Note: pyright and basedpyright are viable alternatives — see README.md for details.
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -105,16 +106,9 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 
-# Per-module options for external libraries
+# Per-module options for external libraries without complete type stubs
 [[tool.mypy.overrides]]
 module = [
-    "fastapi.*",
     "sqlalchemy.*",
-    "pydantic.*",
 ]
 ignore_missing_imports = true
-
-[dependency-groups]
-dev = [
-    "pre-commit>=4.1.0",
-]
